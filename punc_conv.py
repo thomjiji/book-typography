@@ -104,8 +104,13 @@ def process_html_files(directory_or_file):
     if path.is_dir():
         for file_path in path.glob("**/*.html"):
             process_html_file(str(file_path))
+        for file_path in path.glob("**/*.xhtml"):
+            process_html_file(str(file_path))
     elif path.is_file():
-        process_html_file(str(path))
+        if path.suffix.lower() in [".html", ".xhtml"]:
+            process_html_file(str(path))
+        else:
+            print("Invalid file extension. Only .html and .xhtml files are supported.")
     else:
         print("Invalid path provided.")
 
