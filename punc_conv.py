@@ -13,6 +13,7 @@ Args:
 """
 
 import argparse
+import html
 from pathlib import Path
 import re
 from bs4 import BeautifulSoup
@@ -21,10 +22,10 @@ from bs4 import BeautifulSoup
 def half_to_full_width(text):
     half_width_punctuation = {
         "!": "！",
-        '"': "“",  # Chinese full-width opening quotation mark
-        "'": "”",  # Chinese full-width closing quotation mark
-        "‘": "“",  # Replace other types of single quotes with Chinese full-width opening quotation mark
-        "’": "”",  # Replace other types of single quotes with Chinese full-width closing quotation mark
+        # '"': "“",  # Chinese full-width opening quotation mark
+        # "'": "”",  # Chinese full-width closing quotation mark
+        # "‘": "“",  # Replace other types of single quotes with Chinese full-width opening quotation mark
+        # "’": "”",  # Replace other types of single quotes with Chinese full-width closing quotation mark
         "#": "＃",
         "$": "＄",
         "%": "％",
@@ -58,9 +59,19 @@ def half_to_full_width(text):
     for half, full in half_width_punctuation.items():
         text = text.replace(half, full)
 
-    # Add half-width space between Chinese character and English letter/number
-    text = re.sub(r"([\u4e00-\u9fff])([A-Za-z0-9])", r"\1 \2", text)
-    text = re.sub(r"([A-Za-z0-9])([\u4e00-\u9fff])", r"\1 \2", text)
+    # Add half-width space between Chinese character and English word/number
+    text = re.sub(
+        r"([\u4e00-\u9fff])([A-Za-z0-9]+)(?![.,])",
+        r"\1<span class='english_letter'>\2</span>",
+        text,
+    )
+    text = re.sub(
+        r"([A-Za-z0-9]+)([\u4e00-\u9fff])",
+        r"<span class='english_letter'>\1</span>\2",
+        text,
+    )
+
+    text = html.unescape(text)
 
     return text
 
@@ -81,11 +92,11 @@ def process_html_file(file_path):
     for element in soup.find_all(string=True):
         if element.parent.name not in ["script", "style"]:
             if element.parent.name in ["sup", "a"]:
-                continue  # Skip processing if within <sup> tag
+                continue  # Skip processing if within <sup> and <a> tag
             element.replace_with(half_to_full_width(element))
 
     with open(file_path, "w", encoding="utf-8") as file:
-        file.write(str(soup))
+        file.write(html.unescape(str(soup)))
 
 
 def process_html_files(directory_or_file):
