@@ -14,8 +14,9 @@ Args:
 
 import argparse
 import html
-from pathlib import Path
 import re
+from pathlib import Path
+
 from bs4 import BeautifulSoup
 
 
@@ -26,9 +27,9 @@ def half_to_full_width(text):
         # "'": "”",  # Chinese full-width closing quotation mark
         # "‘": "“",  # Replace other types of single quotes with Chinese full-width opening quotation mark
         # "’": "”",  # Replace other types of single quotes with Chinese full-width closing quotation mark
-        "#": "＃",
+        # "#": "＃",
         "$": "＄",
-        "%": "％",
+        # "%": "％",
         "&": "＆",
         "(": "（",
         ")": "）",
