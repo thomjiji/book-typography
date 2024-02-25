@@ -91,17 +91,17 @@ def half_to_full_width(text):
 
 
 def process_html_file(file_path):
+    skipped_line = ""
     with open(file_path, "r", encoding="utf-8") as file:
-        html_content = file.read()
+        lines = file.readlines()
+        if lines[0].startswith("<?xml") or lines[0].startswith("<!DOCTYPE"):
+            # Store the skipped line
+            skipped_line = lines[0]
+            lines = lines[1:]
 
-    lines = html_content.split("\n")
-    if lines[0].startswith("<!DOCTYPE"):
-        # If the first line contains <!DOCTYPE>, skip processing the first line
-        first_line_skipped = "\n".join(lines[1:])
-    else:
-        first_line_skipped = html_content
+    html_content = "".join(lines)
 
-    soup = BeautifulSoup(first_line_skipped, "html.parser")
+    soup = BeautifulSoup(html_content, "html.parser")
 
     for element in soup.find_all(string=True):
         if element.parent.name not in ["script", "style"]:
@@ -110,6 +110,7 @@ def process_html_file(file_path):
             element.replace_with(half_to_full_width(element))
 
     with open(file_path, "w", encoding="utf-8") as file:
+        file.write(skipped_line)
         file.write(html.unescape(str(soup)))
 
 
