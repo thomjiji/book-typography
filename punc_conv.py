@@ -59,15 +59,21 @@ def half_to_full_width(text):
     for half, full in half_width_punctuation.items():
         text = text.replace(half, full)
 
-    # Add half-width space between Chinese character and English word/number
     text = re.sub(
-        r"([\u4e00-\u9fff])([A-Za-z0-9]+)(?![.,])",
-        r"\1<span class='english_letter'>\2</span>",
+        r"([\u4e00-\u9fff])([A-Za-z0-9]+)(?=[.,— ])",
+        r"\1<span class='margin_add_left'>\2</span>",
         text,
     )
+
     text = re.sub(
-        r"([A-Za-z0-9]+)([\u4e00-\u9fff])",
-        r"<span class='english_letter'>\1</span>\2",
+        r"([\u4e00-\u9fff])([A-Za-z0-9]+)(?![ ])",
+        r"\1<span class='margin_add_both'>\2</span>",
+        text,
+    )
+
+    text = re.sub(
+        r"(^|[.,，。；”’——（）［］])([A-Za-z0-9.]+)(?=[\u4e00-\u9fff])",
+        r"\1<span class='margin_add_right'>\2</span>",
         text,
     )
 
