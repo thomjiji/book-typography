@@ -58,6 +58,13 @@ def half_to_full_width(text):
         "~": "～",
     }
     for half, full in half_width_punctuation.items():
+        if half == ",":
+            # Check if comma is inside an English sentence
+            if re.search(r"[A-Za-z]+, [A-Za-z]+", text):
+                continue  # Skip replacement
+        if half == ":":
+            if re.search(r"[A-Za-z]+:[A-Za-z/]+", text):
+                continue
         text = text.replace(half, full)
 
     text = re.sub(
