@@ -1,15 +1,9 @@
 """Convert half-width punctuation to full-width punctuation in an HTML file.
 
-This script reads an HTML file, parses its content, and replaces all half-width
+This script reads HTML files, parses its content, and replaces all half-width
 punctuation characters with their equivalent full-width punctuation characters in the
-text content of HTML elements, excluding the first line. The modified HTML content is
-then written back to the original file.
-
-Example:
-    $ python punc_conv.py example.html
-
-Args:
-    FILE (str): The path to the HTML file to be processed.
+text content of HTML elements. The modified HTML content is then written back to the
+original file.
 """
 
 import argparse
@@ -23,13 +17,7 @@ from bs4 import BeautifulSoup
 def half_to_full_width(text):
     half_width_punctuation = {
         "!": "！",
-        # '"': "“",  # Chinese full-width opening quotation mark
-        # "'": "”",  # Chinese full-width closing quotation mark
-        # "‘": "“",  # Replace other types of single quotes with Chinese full-width opening quotation mark
-        # "’": "”",  # Replace other types of single quotes with Chinese full-width closing quotation mark
-        # "#": "＃",
         "$": "＄",
-        # "%": "％",
         "&": "＆",
         "(": "（",
         ")": "）",
@@ -37,8 +25,6 @@ def half_to_full_width(text):
         "+": "＋",
         ",": "，",
         "-": "－",
-        # ".": "．",
-        # "/": "／",
         ":": "：",
         ";": "；",
         "<": "＜",
@@ -56,13 +42,18 @@ def half_to_full_width(text):
         "|": "｜",
         "}": "｝",
         "~": "～",
+        # "#": "＃",
+        # "%": "％",
+        # "/": "／",
+        # ".": "．",
     }
     for half, full in half_width_punctuation.items():
         if half == ",":
             # Check if comma is inside an English sentence
             if re.search(r"[A-Za-z]+, [A-Za-z]+", text):
-                continue  # Skip replacement
+                continue
         if half == ":":
+            # Check if comma is in an url
             if re.search(r"[A-Za-z]+:[A-Za-z/]+", text):
                 continue
         text = text.replace(half, full)
@@ -136,7 +127,7 @@ if __name__ == "__main__":
         "directory",
         metavar="DIRECTORY",
         type=str,
-        help="path to the directory containing HTML files",
+        help="path to a single HTML/XHTML file or a directory containing HTML/XHTML files",
     )
     args = parser.parse_args()
 
