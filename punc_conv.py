@@ -58,7 +58,7 @@ def half_to_full_width(text):
             if re.search(r"[A-Za-z]+, [A-Za-z]+", text):
                 continue
         if half == ":":
-            # Check if comma is in an url
+            # Check if colon is in an URL
             if re.search(r"[A-Za-z]+:[A-Za-z/]+", text):
                 continue
         text = text.replace(half, full)
