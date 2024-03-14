@@ -66,19 +66,19 @@ def half_to_full_width(text):
 
     text = re.sub(
         r"([\u4e00-\u9fff])([A-Za-z0-9✕%éèàçâêîôûëïüÿœæœÆŒÉÈÀÇÂÊÎÔÛËÏÜŸ]+)(?=[ .,—（），。'“”？、])",
-        r"\1<span class='margin_add_left'>\2</span>",
+        r'\1<span class="margin_add_left">\2</span>',
         text,
     )
 
     text = re.sub(
         r"([\u4e00-\u9fff])([A-Za-z0-9✕Φ%#-.]+)(?![ ，。）'éèàçâêîôûëïüÿœæœÆŒÉÈÀÇÂÊÎÔÛËÏÜŸ])",
-        r"\1<span class='margin_add_both'>\2</span>",
+        r'\1<span class="margin_add_both">\2</span>',
         text,
     )
 
     text = re.sub(
-        r"(^|[ .,，。：；“”‘’——（）［］、？·《》・])([A-Za-z0-9éèàçâêîôûëïüÿœæœÆŒÉÈÀÇÂÊÎÔÛËÏÜŸ✕.]+)(?=[\u4e00-\u9fff])",
-        r"\1<span class='margin_add_right'>\2</span>",
+        r"(^|[ .,，。：；“”‘’——（）［］、？·《》・])([A-Za-z0-9éèàçâêîôûëïüÿœæœÆŒÉÈÀÇÂÊÎÔÛËÏÜŸ✕]+)(?=[\u4e00-\u9fff])",
+        r'\1<span class="margin_add_right">\2</span>',
         text,
     )
 
