@@ -1,0 +1,25 @@
+p {
+    text-indent: 2em;
+    line-height: 1.75em;
+    margin: 0;
+}
+
+sup {
+    font-size: 0.625em;
+    line-height: 1.2;
+    vertical-align: super;
+    margin: 0
+}
+
+.margin_add_both {
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+}
+
+.margin_add_left {
+    margin-left: 0.25em;
+}
+
+.margin_add_right {
+    margin-right: 0.25em;
+}
