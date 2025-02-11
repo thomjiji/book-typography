@@ -1,11 +1,10 @@
 import os
 import glob
-import markdown
-import re
 import zipfile
 import tempfile
 from bs4 import BeautifulSoup
 import argparse
+import re
 
 
 def add_spacing(text):
@@ -34,17 +33,17 @@ def extract_text_from_html(html_path):
         markdown_lines = []
         for tag in soup.find_all():
             if tag.name.startswith("h") and tag.name[1:].isdigit():
+                # Call to add_spacing removed; if needed later, you can wrap tag.get_text(strip=True) with add_spacing().
                 markdown_lines.append(
-                    f"{'#' * int(tag.name[1])} {add_spacing(tag.get_text(strip=True))}"
+                    f"{'#' * int(tag.name[1])} {tag.get_text(strip=True)}"
                 )
             elif tag.name in ["p", "li"]:
-                markdown_lines.append(add_spacing(tag.get_text(strip=True)))
-                markdown_lines.append("")  # Add a blank line for paragraph separation
+                markdown_lines.append(tag.get_text(strip=True))
+                markdown_lines.append("")  # blank line for paragraph separation
             elif tag.name == "ul":
                 for li in tag.find_all("li"):
-                    markdown_lines.append(f"- {add_spacing(li.get_text(strip=True))}")
+                    markdown_lines.append(f"- {li.get_text(strip=True)}")
                 markdown_lines.append("")
-
         return "\n".join(markdown_lines).strip()
 
 
@@ -61,7 +60,6 @@ def convert_epub_to_markdown(epub_file, output_file):
             zip_ref.extractall(temp_dir)
 
         content_dir = find_epub_content_dir(temp_dir)
-
         html_files = sorted(
             glob.glob(os.path.join(content_dir, "**", "*.html"), recursive=True)
         )
@@ -91,6 +89,5 @@ if __name__ == "__main__":
     )
     parser.add_argument("epub_file", help="Path to the EPUB file.")
     parser.add_argument("output_file", help="Path to the output Markdown file.")
-
     args = parser.parse_args()
     convert_epub_to_markdown(args.epub_file, args.output_file)
