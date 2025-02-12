@@ -27,7 +27,7 @@ def add_spacing(text):
     return text
 
 
-def extract_text_from_html(html_path, add_spaces):
+def extract_text_from_html(html_path, add_spaces, title_class):
     with open(html_path, "r", encoding="utf-8") as file:
         soup = BeautifulSoup(file, "html.parser")
 
@@ -36,14 +36,21 @@ def extract_text_from_html(html_path, add_spaces):
             text = tag.get_text(strip=True)
             if add_spaces:
                 text = add_spacing(text)
+
             if tag.name.startswith("h") and tag.name[1:].isdigit():
                 markdown_lines.append(f"{'#' * int(tag.name[1])} {text}")
+            elif title_class and tag.has_attr("class") and title_class in tag["class"]:
+                markdown_lines.append(f"## {text}")
+                markdown_lines.append("")
+            elif tag.name == "blockquote":
+                markdown_lines.append(f"> {text}")
+                markdown_lines.append("")
             elif tag.name in ["p", "li"]:
                 markdown_lines.append(text)
                 markdown_lines.append("")  # blank line for paragraph separation
             elif tag.name == "ul":
                 for li in tag.find_all("li"):
-                    markdown_lines.append(f"- {text}")
+                    markdown_lines.append(f"- {li.get_text(strip=True)}")
                 markdown_lines.append("")
         return "\n".join(markdown_lines).strip()
 
@@ -55,7 +62,7 @@ def find_epub_content_dir(base_dir):
     return base_dir
 
 
-def convert_epub_to_markdown(epub_file, output_file, add_spaces):
+def convert_epub_to_markdown(epub_file, output_file, add_spaces, title_class):
     with tempfile.TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(epub_file, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
@@ -74,7 +81,7 @@ def convert_epub_to_markdown(epub_file, output_file, add_spaces):
 
         all_texts = []
         for file in all_files:
-            text = extract_text_from_html(file, add_spaces)
+            text = extract_text_from_html(file, add_spaces, title_class)
             if text:
                 all_texts.append(text)
 
@@ -95,5 +102,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Add spaces between Chinese and non-Chinese characters.",
     )
+    parser.add_argument(
+        "--title-class",
+        help="Specify a class name to detect titles (e.g., 'calibre_6').",
+        default=None,
+    )
     args = parser.parse_args()
-    convert_epub_to_markdown(args.epub_file, args.output_file, args.add_spaces)
+    convert_epub_to_markdown(
+        args.epub_file, args.output_file, args.add_spaces, args.title_class
+    )
