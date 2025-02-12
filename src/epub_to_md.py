@@ -1,10 +1,11 @@
-import os
-import glob
-import zipfile
-import tempfile
-from bs4 import BeautifulSoup
 import argparse
+import glob
+import os
 import re
+import tempfile
+import zipfile
+
+from bs4 import BeautifulSoup
 
 
 def add_spacing(text):
@@ -26,23 +27,23 @@ def add_spacing(text):
     return text
 
 
-def extract_text_from_html(html_path):
+def extract_text_from_html(html_path, add_spaces):
     with open(html_path, "r", encoding="utf-8") as file:
         soup = BeautifulSoup(file, "html.parser")
 
         markdown_lines = []
         for tag in soup.find_all():
+            text = tag.get_text(strip=True)
+            if add_spaces:
+                text = add_spacing(text)
             if tag.name.startswith("h") and tag.name[1:].isdigit():
-                # Call to add_spacing removed; if needed later, you can wrap tag.get_text(strip=True) with add_spacing().
-                markdown_lines.append(
-                    f"{'#' * int(tag.name[1])} {tag.get_text(strip=True)}"
-                )
+                markdown_lines.append(f"{'#' * int(tag.name[1])} {text}")
             elif tag.name in ["p", "li"]:
-                markdown_lines.append(tag.get_text(strip=True))
+                markdown_lines.append(text)
                 markdown_lines.append("")  # blank line for paragraph separation
             elif tag.name == "ul":
                 for li in tag.find_all("li"):
-                    markdown_lines.append(f"- {li.get_text(strip=True)}")
+                    markdown_lines.append(f"- {text}")
                 markdown_lines.append("")
         return "\n".join(markdown_lines).strip()
 
@@ -54,7 +55,7 @@ def find_epub_content_dir(base_dir):
     return base_dir
 
 
-def convert_epub_to_markdown(epub_file, output_file):
+def convert_epub_to_markdown(epub_file, output_file, add_spaces):
     with tempfile.TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(epub_file, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
@@ -73,7 +74,7 @@ def convert_epub_to_markdown(epub_file, output_file):
 
         all_texts = []
         for file in all_files:
-            text = extract_text_from_html(file)
+            text = extract_text_from_html(file, add_spaces)
             if text:
                 all_texts.append(text)
 
@@ -89,5 +90,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("epub_file", help="Path to the EPUB file.")
     parser.add_argument("output_file", help="Path to the output Markdown file.")
+    parser.add_argument(
+        "--add-spaces",
+        action="store_true",
+        help="Add spaces between Chinese and non-Chinese characters.",
+    )
     args = parser.parse_args()
-    convert_epub_to_markdown(args.epub_file, args.output_file)
+    convert_epub_to_markdown(args.epub_file, args.output_file, args.add_spaces)
