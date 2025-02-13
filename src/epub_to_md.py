@@ -27,7 +27,41 @@ def add_spacing(text):
     return text
 
 
-def extract_text_from_html(html_path, add_spaces, title_class):
+def half_to_full_width(text):
+    half_width_punctuation = {
+        "!": "！",
+        "$": "＄",
+        "&": "＆",
+        "(": "（",
+        ")": "）",
+        "*": "＊",
+        "+": "＋",
+        ",": "，",
+        ":": "：",
+        ";": "；",
+        "<": "＜",
+        "=": "＝",
+        ">": "＞",
+        "?": "？",
+        "\\": "＼",
+        "^": "＾",
+        "": "｀",
+        "{": "｛",
+        "|": "｜",
+        "}": "｝",
+        "~": "～",
+        "·": "・",
+    }
+    for half, full in half_width_punctuation.items():
+        if half == "," and re.search(r"[A-Za-z]+, [A-Za-z]+", text):
+            continue  # Skip English sentence commas
+        if half == ":" and re.search(r"[A-Za-z]+:[A-Za-z/]+", text):
+            continue  # Skip colons in URLs
+        text = text.replace(half, full)
+    return text
+
+
+def extract_text_from_html(html_path, add_spaces, title_class, convert_punctuation):
     with open(html_path, "r", encoding="utf-8") as file:
         soup = BeautifulSoup(file, "html.parser")
 
@@ -36,6 +70,8 @@ def extract_text_from_html(html_path, add_spaces, title_class):
             text = tag.get_text(strip=True)
             if add_spaces:
                 text = add_spacing(text)
+            if convert_punctuation:
+                text = half_to_full_width(text)
 
             if tag.name.startswith("h") and tag.name[1:].isdigit():
                 markdown_lines.append(f"{'#' * int(tag.name[1])} {text}")
@@ -62,7 +98,9 @@ def find_epub_content_dir(base_dir):
     return base_dir
 
 
-def convert_epub_to_markdown(epub_file, output_file, add_spaces, title_class):
+def convert_epub_to_markdown(
+    epub_file, output_file, add_spaces, title_class, convert_punctuation
+):
     with tempfile.TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(epub_file, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
@@ -81,7 +119,9 @@ def convert_epub_to_markdown(epub_file, output_file, add_spaces, title_class):
 
         all_texts = []
         for file in all_files:
-            text = extract_text_from_html(file, add_spaces, title_class)
+            text = extract_text_from_html(
+                file, add_spaces, title_class, convert_punctuation
+            )
             if text:
                 all_texts.append(text)
 
@@ -107,7 +147,16 @@ if __name__ == "__main__":
         help="Specify a class name to detect titles (e.g., 'calibre_6').",
         default=None,
     )
+    parser.add_argument(
+        "--convert-punctuation",
+        action="store_true",
+        help="Convert halfwidth punctuation to fullwidth.",
+    )
     args = parser.parse_args()
     convert_epub_to_markdown(
-        args.epub_file, args.output_file, args.add_spaces, args.title_class
+        args.epub_file,
+        args.output_file,
+        args.add_spaces,
+        args.title_class,
+        args.convert_punctuation,
     )
