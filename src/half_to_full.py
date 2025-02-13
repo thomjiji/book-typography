@@ -29,15 +29,32 @@ def half_to_full_width(text):
     }
 
     def replacement(match):
-        char = match.group(0)
+        char = match.group(1)
         if char == "," and re.search(r"[A-Za-z]+, [A-Za-z]+", text):
             return char  # Skip English sentence commas
         if char == ":" and re.search(r"[A-Za-z]+:[A-Za-z/]+", text):
             return char  # Skip colons in URLs
         return half_width_punctuation.get(char, char)
 
-    pattern = re.compile(r"[!$&()*+,:;<=>?\\^`{|}~·]")
-    return pattern.sub(replacement, text)
+    # Split text into lines to preserve line breaks
+    lines = text.splitlines()
+
+    for i, line in enumerate(lines):
+        # Skip lines starting with Markdown-specific characters (headers, lists, etc.)
+        if re.match(
+            r"^\s*([#*-])", line
+        ):  # Matches lines starting with Markdown list or header
+            continue
+
+        # Replace punctuation and remove unnecessary spaces around them, but keep spaces where necessary
+        lines[i] = re.sub(
+            r"(?<=\S)\s*([!$&()*+,:;<=>?\^`{|}~·])\s*(?=\S)",
+            lambda m: replacement(m),
+            line,
+        )
+
+    # Join the lines back into text with preserved line breaks
+    return "\n".join(lines)
 
 
 def convert_md_punctuation(md_file):
