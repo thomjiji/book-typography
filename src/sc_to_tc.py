@@ -1,4 +1,5 @@
 import os
+import argparse
 from bs4 import BeautifulSoup
 import opencc
 from bs4.element import NavigableString
@@ -12,7 +13,15 @@ def convert_simplified_to_traditional(text):
     return converter.convert(text)
 
 
-def process_html_file(file_path):
+def convert_traditional_to_simplified(text):
+    # Using opencc for Traditional to Simplified Chinese conversion
+    converter = opencc.OpenCC(
+        "t2s.json"
+    )  # Traditional to Simplified Chinese conversion
+    return converter.convert(text)
+
+
+def process_html_file(file_path, convert_function):
     skipped_line = ""
     with open(file_path, "r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -27,12 +36,12 @@ def process_html_file(file_path):
     # Now, process the HTML content using BeautifulSoup
     soup = BeautifulSoup(html_content, "html.parser")
 
-    # Convert Simplified Chinese to Traditional Chinese in all text nodes
+    # Convert text nodes using the provided conversion function
     for element in soup.find_all(string=True):  # Find all text nodes
         if (
             isinstance(element, NavigableString) and element.strip()
         ):  # Ensure it's a text node
-            element.replace_with(convert_simplified_to_traditional(element))
+            element.replace_with(convert_function(element))
 
     # Write the modified HTML content back to the same file
     with open(file_path, "w", encoding="utf-8") as file:
@@ -41,27 +50,36 @@ def process_html_file(file_path):
         file.write(str(soup))  # Write the modified HTML
 
 
-def process_epub_directory(input_dir):
+def process_epub_directory(input_dir, convert_function):
     # Loop through all the files in the directory and process only HTML or XHTML files
     for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith((".html", ".xhtml")):
                 file_path = os.path.join(root, file)
                 print(f"Processing: {file_path}")
-                process_html_file(file_path)
+                process_html_file(file_path, convert_function)
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(
-        description="Convert Simplified Chinese to Traditional Chinese in EPUB files."
+        description="Convert between Simplified and Traditional Chinese in EPUB files."
     )
     parser.add_argument(
         "input_dir",
         type=str,
         help="Directory containing HTML or XHTML files in the EPUB.",
     )
+    parser.add_argument(
+        "--reverse",
+        action="store_true",
+        help="Perform reverse conversion (Traditional to Simplified Chinese).",
+    )
     args = parser.parse_args()
 
-    process_epub_directory(args.input_dir)  # Process the directory
+    # Choose the appropriate conversion function based on user input
+    if args.reverse:
+        convert_function = convert_traditional_to_simplified
+    else:
+        convert_function = convert_simplified_to_traditional
+
+    process_epub_directory(args.input_dir, convert_function)  # Process the directory
