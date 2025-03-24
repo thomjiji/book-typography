@@ -71,7 +71,7 @@ def half_to_full_width(text):
     )
 
     text = re.sub(
-        r"([\u4e00-\u9fff])([A-Za-z0-9✕Φ%#-.]+)(?![ ，。）'éèàçâêîôûëïüÿœæœÆŒÉÈÀÇÂÊÎÔÛËÏÜŸ/])",
+        r"([\u4e00-\u9fff])([A-Za-z0-9✕Φ%#-.≠]+)(?![ ，。）'éèàçâêîôûëïüÿœæœÆŒÉÈÀÇÂÊÎÔÛËÏÜŸ/])",
         r'\1<span class="margin_add_both">\2</span>',
         text,
     )
