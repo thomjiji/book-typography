@@ -23,3 +23,8 @@ sup {
 .margin_add_right {
     margin-right: 0.25em;
 }
+
+.note {
+    /* 脚注 */
+    font-size: 0.85em;
+}
